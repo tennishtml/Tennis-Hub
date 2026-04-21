@@ -6,6 +6,40 @@
 <title>Tennis Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+.header-container {
+  display: flex;
+  justify-content: space-between; /* Pushes items to opposite ends */
+  align-items: center;
+}
+  /* Removes default browser margins so the header touches the very edge */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.main-header {
+  background-color: #ffffff; /* Change to your brand color */
+  padding: 10px 20px;
+  border-bottom: 1px solid #ddd;
+  width: 100%;
+}
+
+.header-container {
+  display: flex;         /* Enables Flexbox */
+  align-items: center;   /* Centers items vertically */
+  gap: 15px;            /* Adds space between the logo and the image */
+}
+
+.logo {
+  height: 50px;          /* Adjust based on your logo size */
+  width: auto;
+}
+
+.header-image {
+  height: 40px;          /* Usually slightly smaller than the logo */
+  width: auto;
+  border-radius: 4px;    /* Optional: rounds the corners */
+}
   :root {
     --green-deep: #0a3d2e;
     --green-mid: #1a6b4a;
@@ -214,6 +248,13 @@
 </style>
 </head>
 <body>
+  <header class="main-header">
+  <div class="header-container">
+    <img src="T1.png" alt="Company Logo" class="logo">
+    
+    <img src="T1.jpg" alt="Featured Image" class="header-image">
+  </div>
+</header>
 
 <div class="bg"></div>
 <div class="court-lines"></div>
