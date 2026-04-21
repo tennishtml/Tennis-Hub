@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tennis Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #0a3d2e;
+    --green-mid: #1a6b4a;
+    --green-bright: #2ecc8f;
+    --gold: #e8c96a;
+    --glass-bg: rgba(255,255,255,0.07);
+    --glass-border: rgba(255,255,255,0.15);
+    --glass-blur: blur(18px);
+    --text: #f0f4f0;
+    --text-muted: rgba(240,244,240,0.6);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--green-deep); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  .bg { position: fixed; inset: 0; z-index: 0; background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(46,204,143,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 80% 80%, rgba(26,107,74,0.25) 0%, transparent 60%), radial-gradient(ellipse 50% 50% at 50% 50%, rgba(10,61,46,1) 0%, #040f0a 100%); }
+  .court-lines { position: fixed; inset: 0; z-index: 0; opacity: 0.04; background-image: linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px); background-size: 80px 80px; }
+  .orb { position: fixed; border-radius: 50%; filter: blur(60px); animation: float 12s ease-in-out infinite; z-index: 0; pointer-events: none; }
+  .orb1 { width: 300px; height: 300px; background: rgba(46,204,143,0.12); top: -80px; left: -80px; }
+  .orb2 { width: 200px; height: 200px; background: rgba(232,201,106,0.08); bottom: 100px; right: -60px; animation-delay: -4s; }
+  .orb3 { width: 150px; height: 150px; background: rgba(46,204,143,0.1); top: 50%; left: 60%; animation-delay: -8s; }
+  @keyframes float { 0%,100%{transform:translate(0,0)} 33%{transform:translate(20px,-30px)} 66%{transform:translate(-15px,20px)} }
+
+  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* HERO */
+  .hero { text-align: center; padding: 4rem 1rem 2.5rem; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--glass-bg); border: 0.5px solid var(--glass-border); backdrop-filter: var(--glass-blur); border-radius: 999px; padding: 6px 18px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green-bright); margin-bottom: 1.5rem; }
+  .tennis-ball { display: inline-block; width: 12px; height: 12px; background: #c8e63a; border-radius: 50%; box-shadow: 0 0 10px rgba(200,230,58,0.7); animation: pulse 2s ease-in-out infinite; flex-shrink: 0; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 10px rgba(200,230,58,0.6)} 50%{box-shadow:0 0 22px rgba(200,230,58,0.95)} }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 8vw, 6rem); font-weight: 900; line-height: 1; background: linear-gradient(135deg, #fff 0%, var(--green-bright) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 1rem; }
+  .hero p { font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: var(--text-muted); max-width: 520px; margin: 0 auto 2rem; font-weight: 300; line-height: 1.6; }
+
+  /* NAV */
+  .nav-wrap { display: flex; justify-content: center; margin-bottom: 2.5rem; }
+  .nav { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 0.5px solid var(--glass-border); border-radius: 999px; padding: 6px; }
+  .nav button { background: transparent; border: none; border-radius: 999px; padding: 9px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; color: var(--text-muted); transition: all 0.25s; font-weight: 400; white-space: nowrap; }
+  .nav button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .nav button.active { background: var(--green-bright); color: #000; font-weight: 500; }
+
+  section { display: none; animation: fadeIn 0.4s ease; }
+  section.active { display: block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  .glass { background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 0.5px solid var(--glass-border); border-radius: 20px; }
+
+  .sec-head { margin-bottom: 1.75rem; }
+  .sec-head h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; margin-bottom: 0.35rem; }
+  .sec-head p { color: var(--text-muted); font-size: 0.95rem; font-weight: 300; line-height: 1.5; }
+
+  /* BEGINNER */
+  .beginner-intro { background: linear-gradient(135deg, rgba(46,204,143,0.12), rgba(232,201,106,0.08)); border: 0.5px solid rgba(46,204,143,0.3); border-radius: 20px; padding: 1.75rem; margin-bottom: 1.75rem; }
+  .beginner-intro h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--green-bright); }
+  .beginner-intro p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.7; }
+
+  .steps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 1.75rem; }
+  .step-card { padding: 1.5rem; border-radius: 20px; }
+  .step-number { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--green-bright), var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #000; flex-shrink: 0; }
+  .step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem; }
+  .step-title { font-size: 15px; font-weight: 500; }
+  .step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+
+  .court-diagram { border-radius: 20px; padding: 1.75rem; margin-bottom: 1.75rem; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 0.5px solid var(--glass-border); }
+  .court-diagram h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+  .court-svg-wrap { display: flex; justify-content: center; overflow-x: auto; }
+  .court-svg-wrap svg { max-width: 100%; height: auto; min-width: 280px; }
+
+  .scoring-explainer { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; margin-bottom: 1.75rem; }
+  .score-card { padding: 1.25rem; border-radius: 16px; text-align: center; }
+  .score-big { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+  .score-means { font-size: 11px; color: var(--green-bright); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; font-weight: 500; }
+  .score-note { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  .glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 12px; }
+  .glossary-card { padding: 1.1rem 1.25rem; border-radius: 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .glossary-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .glossary-term { font-size: 14px; font-weight: 500; margin-bottom: 3px; color: var(--green-bright); }
+  .glossary-def { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+
+  /* SHOTS */
+  .shots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .shot-card { padding: 1.25rem; border-radius: 20px; cursor: pointer; transition: transform 0.2s, border-color 0.2s; align-self: start; }
+  .shot-card:hover { transform: translateY(-3px); border-color: rgba(46,204,143,0.4); }
+  .shot-top { display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem; }
+  .shot-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .shot-name { font-size: 15px; font-weight: 500; }
+  .shot-badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgba(46,204,143,0.15); color: var(--green-bright); margin-bottom: 0.6rem; }
+  .shot-difficulty { display: flex; align-items: center; gap: 6px; }
+  .shot-difficulty span { font-size: 11px; color: var(--text-muted); }
+  .diff-dots { display: flex; gap: 3px; }
+  .diff-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+  .diff-dot.on { background: var(--gold); }
+  .shot-hint { font-size: 12px; color: rgba(46,204,143,0.6); margin-top: 8px; }
+
+  /* SHOT MODAL */
+  .shot-modal-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 1rem; }
+  .shot-modal-overlay.open { display: flex; }
+  .shot-modal { background: rgba(8,28,20,0.97); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 0.5px solid rgba(46,204,143,0.35); border-radius: 24px; padding: 2rem; max-width: 500px; width: 100%; position: relative; animation: modalIn 0.25s ease; max-height: 88vh; overflow-y: auto; }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .shot-modal-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.08); border: 0.5px solid rgba(255,255,255,0.15); border-radius: 50%; width: 32px; height: 32px; cursor: pointer; color: var(--text); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .shot-modal-close:hover { background: rgba(255,255,255,0.15); }
+  .shot-modal-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .shot-modal-name { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .shot-modal-badge { display: inline-block; font-size: 11px; padding: 3px 12px; border-radius: 999px; background: rgba(46,204,143,0.15); color: var(--green-bright); margin-bottom: 1rem; }
+  .shot-modal-diff { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+  .shot-modal-diff span { font-size: 12px; color: var(--text-muted); }
+  .shot-modal-divider { border-top: 0.5px solid rgba(255,255,255,0.08); margin: 1rem 0; }
+  .shot-modal-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--green-bright); margin-bottom: 6px; font-weight: 500; }
+  .shot-modal-desc { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 1rem; }
+  .shot-modal-beginner { font-size: 13px; color: rgba(240,244,240,0.8); line-height: 1.65; background: rgba(46,204,143,0.08); border-radius: 12px; padding: 12px 14px; margin-bottom: 1rem; }
+  .shot-modal-tip { font-size: 12.5px; color: rgba(46,204,143,0.85); background: rgba(46,204,143,0.08); border-radius: 10px; padding: 10px 14px; font-style: italic; }
+
+  /* RANKINGS */
+  .lb-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .lb-tab { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 0.5px solid var(--glass-border); border-radius: 999px; padding: 8px 20px; font-size: 13px; cursor: pointer; color: var(--text-muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .lb-tab:hover { color: var(--text); }
+  .lb-tab.active { background: var(--green-bright); color: #000; border-color: var(--green-bright); font-weight: 500; }
+  .rank-row { display: grid; grid-template-columns: 48px 1fr 110px 130px; align-items: center; padding: 13px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); transition: background 0.15s; }
+  .rank-row:hover { background: rgba(255,255,255,0.04); }
+  .rank-row:last-child { border-bottom: none; }
+  .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; }
+  .r1 { background: rgba(232,201,106,0.25); color: var(--gold); }
+  .r2 { background: rgba(200,200,200,0.15); color: #ccc; }
+  .r3 { background: rgba(200,120,80,0.2); color: #e0926a; }
+  .rn { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+  .player-info .pname { font-size: 15px; font-weight: 400; }
+  .player-info .pnat { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pts-val { font-size: 14px; font-weight: 500; color: var(--green-bright); text-align: right; }
+  .pts-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .pts-bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .pts-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--green-bright), var(--gold)); }
+  .lb-updated { font-size: 12px; color: var(--text-muted); text-align: right; margin-top: 1rem; }
+
+  /* LEGENDS */
+  .legends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+  .legend-card { padding: 1.5rem; border-radius: 20px; transition: transform 0.2s; }
+  .legend-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.2); }
+  .legend-init { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 1rem; }
+  .legend-name { font-size: 15px; font-weight: 500; margin-bottom: 3px; }
+  .legend-nat { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .legend-slams { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; color: var(--gold); line-height: 1; margin-bottom: 2px; }
+  .legend-slam-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .legend-fact { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* SLAMS */
+  .slams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap: 14px; }
+  .slam-card { padding: 1.5rem; border-radius: 20px; transition: transform 0.2s; position: relative; overflow: hidden; }
+  .slam-card:hover { transform: translateY(-4px); }
+  .slam-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .slam-year { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .slam-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+  .slam-loc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+  .slam-stat { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .slam-stat-label { color: var(--text-muted); }
+  .slam-stat-val { font-weight: 500; }
+  .slam-surface-pill { display: inline-block; font-size: 11px; padding: 3px 12px; border-radius: 999px; font-weight: 400; margin-top: 10px; }
+
+  /* RULES */
+  .rules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 14px; }
+  .rule-card { padding: 1.5rem; border-radius: 20px; }
+  .rule-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; color: rgba(46,204,143,0.3); line-height: 1; margin-bottom: 8px; }
+  .rule-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .rule-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+
+  /* STATS */
+  .stats-hero { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 12px; margin-bottom: 1.5rem; }
+  .stat-card { padding: 1.5rem; border-radius: 20px; text-align: center; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, var(--green-bright), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: 6px; }
+  .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(46,204,143,0.3); border-radius: 3px; }
+
+  footer { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 13px; margin-top: 2rem; border-top: 0.5px solid rgba(255,255,255,0.06); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .wrapper { padding: 0 1rem 3rem; }
+    .hero { padding: 2.5rem 0.5rem 2rem; }
+    .nav { border-radius: 14px; }
+    .nav button { padding: 8px 12px; font-size: 12px; }
+    .shots-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .legends-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .slams-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .scoring-explainer { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .glossary-grid { grid-template-columns: 1fr; }
+    .rank-row { grid-template-columns: 40px 1fr 90px; }
+    .rank-row .pts-bar-wrap { display: none; }
+    .rules-grid { grid-template-columns: 1fr; }
+    .stats-hero { grid-template-columns: repeat(3, 1fr); }
+    .shot-modal { padding: 1.5rem; border-radius: 18px; }
+    .shot-modal-name { font-size: 1.3rem; }
+  }
+  @media (max-width: 480px) {
+    .nav button { padding: 7px 10px; font-size: 11px; }
+    .shots-grid { grid-template-columns: 1fr; }
+    .legends-grid { grid-template-columns: 1fr; }
+    .slams-grid { grid-template-columns: 1fr; }
+    .scoring-explainer { grid-template-columns: repeat(2, 1fr); }
+    .stats-hero { grid-template-columns: repeat(2, 1fr); }
+    .rank-row { grid-template-columns: 36px 1fr 80px; padding: 11px 12px; }
+    .player-info .pname { font-size: 13px; }
+    .pts-val { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="court-lines"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="wrapper">
+  <div class="hero">
+    <div class="hero-badge"><span class="tennis-ball"></span>The Complete Tennis Guide</div>
+    <h1>Tennis Hub</h1>
+    <p>Everything you need — whether you've never held a racket or you watch every Grand Slam</p>
+  </div>
+
+  <div class="nav-wrap">
+    <div class="nav">
+      <button class="active" onclick="show('beginner',this)">🟢 Beginners</button>
+      <button onclick="show('shots',this)">Shots</button>
+      <button onclick="show('rankings',this)">Rankings</button>
+      <button onclick="show('legends',this)">Legends</button>
+      <button onclick="show('slams',this)">Grand Slams</button>
+      <button onclick="show('rules',this)">Rules</button>
+      <button onclick="show('stats',this)">Stats</button>
+    </div>
+  </div>
+
+  <!-- BEGINNER -->
+  <section id="beginner" class="active">
+    <div class="sec-head">
+      <h2>🟢 Complete Beginner's Guide</h2>
+      <p>Never watched tennis before? Start right here — we explain everything from scratch in plain English.</p>
+    </div>
+
+    <div class="beginner-intro">
+      <h3>What is tennis?</h3>
+      <p>Tennis is a sport played between two players (singles) or two pairs (doubles) on a rectangular court. Each player uses a racket to hit a felt ball over a net into the opponent's side. The goal is simple — hit the ball so your opponent can't hit it back. The first player to win enough points, games, and sets wins the match. That's the whole sport at its core!</p>
+    </div>
+
+    <div class="sec-head" style="margin-top:1.5rem">
+      <h2>5 steps to understand a tennis match</h2>
+      <p>Follow these in order and you'll understand everything happening on court.</p>
+    </div>
+    <div class="steps-grid" id="steps-grid"></div>
+
+    <div class="sec-head" style="margin-top:2rem">
+      <h2>How the scoring works</h2>
+      <p>Tennis uses a unique scoring system that confuses many new fans. Here's exactly what every score means.</p>
+    </div>
+    <div class="scoring-explainer" id="scoring-grid"></div>
+
+    <div class="court-diagram" style="margin-top:1.75rem">
+      <h3>The tennis court — labelled for beginners</h3>
+      <div class="court-svg-wrap">
+        <svg viewBox="0 0 520 320" width="520" height="320" xmlns="http://www.w3.org/2000/svg" style="font-family:'DM Sans',sans-serif">
+          <rect x="40" y="30" width="440" height="260" rx="4" fill="rgba(30,90,190,0.25)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+          <line x1="40" y1="160" x2="480" y2="160" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" stroke-dasharray="6,4"/>
+          <text x="260" y="154" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle">NET</text>
+          <line x1="90" y1="30" x2="90" y2="290" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <line x1="430" y1="30" x2="430" y2="290" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <line x1="90" y1="105" x2="430" y2="105" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <line x1="90" y1="215" x2="430" y2="215" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <line x1="260" y1="105" x2="260" y2="215" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <text x="260" y="52" fill="rgba(255,255,255,0.7)" font-size="11" text-anchor="middle">Baseline</text>
+          <text x="62" y="168" fill="rgba(232,201,106,0.8)" font-size="9" text-anchor="middle" transform="rotate(-90,62,168)">Doubles alley</text>
+          <text x="458" y="168" fill="rgba(232,201,106,0.8)" font-size="9" text-anchor="middle" transform="rotate(90,458,168)">Doubles alley</text>
+          <text x="175" y="136" fill="rgba(255,255,255,0.55)" font-size="10" text-anchor="middle">Service box</text>
+          <text x="345" y="136" fill="rgba(255,255,255,0.55)" font-size="10" text-anchor="middle">Service box</text>
+          <text x="175" y="188" fill="rgba(255,255,255,0.55)" font-size="10" text-anchor="middle">Service box</text>
+          <text x="345" y="188" fill="rgba(255,255,255,0.55)" font-size="10" text-anchor="middle">Service box</text>
+          <text x="260" y="273" fill="rgba(255,255,255,0.7)" font-size="11" text-anchor="middle">Baseline</text>
+          <line x1="260" y1="280" x2="260" y2="290" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+          <line x1="260" y1="30" x2="260" y2="40" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+          <circle cx="260" cy="72" r="10" fill="rgba(46,204,143,0.35)" stroke="rgba(46,204,143,0.8)" stroke-width="1.5"/>
+          <text x="260" y="76" fill="#fff" font-size="10" text-anchor="middle" font-weight="700">P1</text>
+          <circle cx="260" cy="248" r="10" fill="rgba(232,201,106,0.35)" stroke="rgba(232,201,106,0.8)" stroke-width="1.5"/>
+          <text x="260" y="252" fill="#fff" font-size="10" text-anchor="middle" font-weight="700">P2</text>
+          <text x="260" y="313" fill="rgba(255,255,255,0.35)" font-size="9" text-anchor="middle">Singles: 8.23m wide · Doubles: 10.97m wide · Length: 23.77m</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="sec-head" style="margin-top:1.5rem">
+      <h2>Key tennis words explained</h2>
+      <p>A quick glossary of terms you'll hear commentators use — now you'll always know what they mean.</p>
+    </div>
+    <div class="glossary-grid" id="glossary-grid"></div>
+  </section>
+
+  <!-- SHOTS -->
+  <section id="shots">
+    <div class="sec-head">
+      <h2>Every Tennis Shot</h2>
+      <p>Tap any card to learn exactly what the shot is — with a beginner-friendly explanation inside every one</p>
+    </div>
+    <div class="shots-grid" id="shots-grid"></div>
+  </section>
+
+  <!-- RANKINGS -->
+  <section id="rankings">
+    <div class="sec-head">
+      <h2>Live Rankings</h2>
+      <p>Current ATP & WTA world rankings — April 2026</p>
+    </div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" onclick="showRank('atp',this)">ATP Men</button>
+      <button class="lb-tab" onclick="showRank('wta',this)">WTA Women</button>
+    </div>
+    <div class="glass" id="rank-table"></div>
+    <p class="lb-updated">Updated April 2026</p>
+  </section>
+
+  <!-- LEGENDS -->
+  <section id="legends">
+    <div class="sec-head">
+      <h2>Greatest Players Ever</h2>
+      <p>The all-time icons who defined the sport</p>
+    </div>
+    <div class="legends-grid" id="legends-grid"></div>
+  </section>
+
+  <!-- SLAMS -->
+  <section id="slams">
+    <div class="sec-head">
+      <h2>The Grand Slams</h2>
+      <p>The four most prestigious tournaments in tennis</p>
+    </div>
+    <div class="slams-grid" id="slams-grid"></div>
+  </section>
+
+  <!-- RULES -->
+  <section id="rules">
+    <div class="sec-head">
+      <h2>Key Rules of Tennis</h2>
+      <p>The essential rules every tennis fan should know</p>
+    </div>
+    <div class="rules-grid" id="rules-grid"></div>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats">
+    <div class="sec-head">
+      <h2>Tennis by the Numbers</h2>
+      <p>Fascinating facts and statistics about the sport</p>
+    </div>
+    <div class="stats-hero" id="stats-hero"></div>
+    <div class="rules-grid" id="stats-facts"></div>
+  </section>
+
+  <footer>Tennis Hub &mdash; Built with passion for the sport &bull; Data updated April 2026</footer>
+</div>
+
+<!-- Shot modal -->
+<div class="shot-modal-overlay" id="shot-modal-overlay" onclick="closeShotModal(event)">
+  <div class="shot-modal">
+    <button class="shot-modal-close" onclick="closeShotModal()">✕</button>
+    <div class="shot-modal-icon" id="modal-icon"></div>
+    <div class="shot-modal-name" id="modal-name"></div>
+    <div class="shot-modal-badge" id="modal-badge"></div>
+    <div class="shot-modal-diff"><span>Difficulty</span><div class="diff-dots" id="modal-diff"></div></div>
+    <div class="shot-modal-divider"></div>
+    <div class="shot-modal-label">What it is</div>
+    <div class="shot-modal-desc" id="modal-desc"></div>
+    <div class="shot-modal-label">🟢 Beginner explanation</div>
+    <div class="shot-modal-beginner" id="modal-beginner"></div>
+    <div class="shot-modal-tip" id="modal-tip"></div>
+  </div>
+</div>
+
+<script>
+const steps = [
+  {n:1,title:"The serve starts every point",desc:"One player serves — standing behind the baseline, they hit the ball diagonally into the small service box on the other side of the net. They get two chances. Miss both = double fault, and the opponent wins the point automatically."},
+  {n:2,title:"Rally — keep the ball in play",desc:"After the serve, both players hit the ball back and forth over the net. You must let the ball bounce once before hitting it (unless you're at the net). Hit it out or into the net = you lose the point."},
+  {n:3,title:"Winning a point",desc:"You win a point when your opponent hits the ball out of bounds, into the net, can't return it before it bounces twice, or commits a double fault on their serve."},
+  {n:4,title:"Points → Games: 0, 15, 30, 40",desc:"Tennis uses unusual scoring. Points go: 0 → 15 → 30 → 40 → Game won. If both players reach 40, it's called 'deuce' — from deuce you need to win two points in a row to win the game."},
+  {n:5,title:"Games → Sets → Match",desc:"Win 6 games (by 2) to win a set. Win 2 sets (best of 3) or 3 sets (best of 5 in men's Grand Slams) and you win the match. If a set reaches 6–6, a tiebreak is usually played. That's the full structure!"},
+];
+
+const scoring = [
+  {score:"0",means:"Love",note:"Zero points scored. 'Love' comes from the French word for egg (l'oeuf), which looks like a zero."},
+  {score:"15",means:"First point",note:"Winning the first point of a game takes the score from 0 (Love) to 15."},
+  {score:"30",means:"Second point",note:"Winning a second point in the same game takes the score to 30."},
+  {score:"40",means:"Third point",note:"One more point now wins the game — unless the opponent is also at 40 (deuce)."},
+  {score:"Deuce",means:"40 all",note:"Both players at 40. From deuce, a player must win two consecutive points to win the game."},
+  {score:"Ad",means:"Advantage",note:"After deuce, the player who wins the next point has 'advantage'. Win one more point = game. Lose it = back to deuce."},
+];
+
+const glossary = [
+  {icon:"🎾",term:"Ace",def:"A serve so fast and well-placed that the opponent can't even touch it with their racket — an outright point-winner from the serve alone."},
+  {icon:"❌",term:"Double fault",def:"Missing both serve attempts in a row. You automatically lose the point. One of the most costly mistakes in tennis."},
+  {icon:"🔁",term:"Rally",def:"The back-and-forth exchange of shots after the serve. A 'long rally' means lots of shots were hit before the point ended."},
+  {icon:"🥅",term:"Let",def:"When the serve clips the top of the net but still lands in the correct service box — it's replayed. No one loses a point."},
+  {icon:"💥",term:"Break of serve",def:"When the player who is RECEIVING (not serving) wins the game. Very significant — most matches are decided by who breaks serve."},
+  {icon:"7️⃣",term:"Tiebreak",def:"At 6 games all in a set, a special short game is played first to 7 points (must win by 2) to decide who wins the set."},
+  {icon:"🌐",term:"Baseline",def:"The line at the very back of the court. Most of modern professional tennis is played from this area — called 'baseline tennis'."},
+  {icon:"🎯",term:"Unforced error",def:"A mistake you made that wasn't forced by a great shot from the opponent — you simply missed. Commentators track these carefully."},
+  {icon:"💪",term:"Winner",def:"A shot so good and well-placed that the opponent simply cannot reach it. One of the most exciting moments in a tennis match."},
+  {icon:"🏆",term:"Grand Slam",def:"The four biggest tournaments in tennis: Australian Open, French Open (Roland Garros), Wimbledon, and US Open. Winning all four is the ultimate achievement."},
+  {icon:"📋",term:"ATP / WTA",def:"ATP = men's professional tour (Association of Tennis Professionals). WTA = women's professional tour (Women's Tennis Association)."},
+  {icon:"🔢",term:"Seeding",def:"Players are ranked 1–32 in a tournament draw. The No.1 seed is the best player. Seeds are kept apart so they can only meet in the later rounds."},
+];
+
+const shots = [
+  {name:"Serve",badge:"Starter",icon:"🎾",diff:3,desc:"The shot that begins every point, struck from behind the baseline into the opponent's service box. Varieties include the flat serve (maximum speed), kick serve (heavy topspin that bounces high), slice serve (curves away), and body serve (aimed at the hip).",beginner:"Think of it like a throw — toss the ball up and hit it downward into the diagonal box across the net. You get TWO chances per point. Miss both = double fault = opponent wins the point.",tip:"World record serve speed: 263.4 km/h (John Isner)"},
+  {name:"Forehand",badge:"Groundstroke",icon:"🏓",diff:2,desc:"The dominant-side groundstroke and typically a player's biggest weapon. The swing brushes up and forward producing topspin. Can be hit cross-court, down the line, or inside-out.",beginner:"If you're right-handed, this is your right-side swing. It's usually the most natural and most powerful shot. Most players build their whole game around a strong forehand.",tip:"Rafael Nadal's forehand averages 3,200 RPM of topspin."},
+  {name:"Backhand",badge:"Groundstroke",icon:"↩️",diff:3,desc:"Hit from the non-dominant side. One-handed backhands produce elegant slice and greater reach; two-handed backhands offer more power and stability.",beginner:"If you're right-handed, this is your left-side shot. It feels awkward at first. Many players use both hands for more control — Djokovic's two-handed backhand is so strong he actually attacks with it.",tip:"Dominic Thiem's one-handed backhand is considered the hardest hit in the game."},
+  {name:"Volley",badge:"Net play",icon:"⚡",diff:3,desc:"Struck before the ball bounces, typically near the net. Uses a short punching motion. Key part of serve-and-volley tactics on fast surfaces like grass.",beginner:"When a player runs to the net and hits the ball BEFORE it bounces — that's a volley. It's a short punching movement (no big swing). Being at the net is risky if opponent lobs over you, but great for ending points fast.",tip:"Stefan Edberg and John McEnroe are considered the greatest volleyers ever."},
+  {name:"Overhead smash",badge:"Attacking",icon:"💥",diff:4,desc:"A powerful downward strike used to finish points against a high lob. The player positions under the ball, raises the racket like a serve, and hits down with maximum force.",beginner:"When the opponent hits a lob (a very high shot) over a player's head, the player can 'smash' it — hit it down hard like a serve. It's one of the most powerful moments in tennis.",tip:"Smashes can exceed 200 km/h from mid-court."},
+  {name:"Drop shot",badge:"Touch",icon:"🪶",diff:5,desc:"A delicate touch shot hit with heavy backspin that barely clears the net and dies close to it. Devastatingly effective against players stuck deep behind the baseline.",beginner:"Instead of hitting hard, the player barely nudges the ball so it dribbles over the net and barely moves. If the opponent is far back, they have to sprint all the way forward — very cheeky and effective!",tip:"Drop shots work best when the opponent is 3+ metres behind the baseline."},
+  {name:"Lob",badge:"Defensive",icon:"🌙",diff:3,desc:"A high arcing shot over an opponent positioned at the net. The defensive lob buys time; the offensive topspin lob dips sharply and is nearly unreturnable when executed correctly.",beginner:"A lob is a high looping shot hit over the opponent — especially when they've come to the net. If they're too close to the net, you arc the ball high over their head to the back of the court.",tip:"A perfectly placed lob is one of the most satisfying shots to hit."},
+  {name:"Slice",badge:"Spin",icon:"🌀",diff:3,desc:"Hit with underspin (backspin), which keeps the ball low and floating with a slow bounce. Used to approach the net, change rhythm, or produce a skidding shot that stays low on fast courts.",beginner:"A slice is hit with backspin — the ball floats slowly and stays low after bouncing. It's great for changing the pace of a rally and keeping the ball low, especially on fast grass courts.",tip:"On grass, a slice serve can skid through extremely low, almost unplayable."},
+  {name:"Topspin",badge:"Spin",icon:"🔄",diff:3,desc:"Produced by brushing up sharply on the back of the ball, making it rotate forward. Topspin causes the ball to dip quickly into court and bounce high.",beginner:"Topspin is when you brush UP on the ball so it spins forward. The ball dips down fast (good — keeps it in court) then bounces very high, pushing your opponent way behind the baseline.",tip:"Topspin looped shots can rotate at over 5,000 RPM."},
+  {name:"Half volley",badge:"Reflex",icon:"⏱️",diff:5,desc:"Struck immediately after the ball bounces, requiring lightning reactions. Usually played near the service line when caught in no-man's land.",beginner:"This is a pure reflex shot — the ball has just barely bounced and the player hits it immediately. It happens when a player gets caught mid-court and has absolutely no time to let the ball rise.",tip:"Also called a 'short hop' — it's often hit out of necessity, not choice."},
+  {name:"Return of serve",badge:"Fundamental",icon:"🔁",diff:4,desc:"The response to the opponent's serve. Can range from a passive block-back to an aggressive drive. Djokovic and Agassi are considered the greatest returners in history.",beginner:"When you receive the opponent's serve, you have to return it. On a fast first serve you have barely 0.5 seconds to react! Getting a strong return immediately puts you in control of the point.",tip:"A good return of second serve is the fastest way to build pressure in modern tennis."},
+  {name:"Passing shot",badge:"Defensive",icon:"🎯",diff:4,desc:"Struck past a net-rushing opponent, either down the line or cross-court. Requires precision and pace under extreme pressure.",beginner:"When the opponent comes to the net, you can try to hit the ball PAST them along the sideline. It has to be very accurate because they're blocking part of the court. One of the most exciting moments to watch!",tip:"Cross-court passing shots are higher percentage; down the line are more surprising."},
+  {name:"Inside-out forehand",badge:"Tactical",icon:"↗️",diff:4,desc:"Running around the backhand side to hit a forehand into the opponent's backhand corner. Creates sharper angles and exploits the player's stronger wing.",beginner:"Instead of using their backhand, a player sprints around the ball so they can use their forehand instead. Extra effort but lets them use their strongest shot from an unexpected position.",tip:"Leaves the opposite open court exposed — must follow up aggressively."},
+  {name:"Tweener",badge:"Trick",icon:"🤸",diff:5,desc:"Hit between the legs while sprinting away from the net, usually when a lob has gone over the player's head. A showboating shot that occasionally wins points spectacularly.",beginner:"One of the most jaw-dropping shots in tennis — the player hits the ball BETWEEN their own legs while running away from the net. It looks impossible but top players occasionally win actual points with it!",tip:"Djokovic's tweener winner vs Tsonga at Wimbledon 2010 is considered the greatest ever."},
+];
+
+const atp=[{rank:1,name:"Jannik Sinner",nat:"🇮🇹 Italy",pts:13350},{rank:2,name:"Carlos Alcaraz",nat:"🇪🇸 Spain",pts:12960},{rank:3,name:"Alexander Zverev",nat:"🇩🇪 Germany",pts:5255},{rank:4,name:"Novak Djokovic",nat:"🇷🇸 Serbia",pts:4710},{rank:5,name:"Felix Auger-Aliassime",nat:"🇨🇦 Canada",pts:4100},{rank:6,name:"Ben Shelton",nat:"🇺🇸 USA",pts:4070},{rank:7,name:"Taylor Fritz",nat:"🇺🇸 USA",pts:3870},{rank:8,name:"Alex de Minaur",nat:"🇦🇺 Australia",pts:3845},{rank:9,name:"Lorenzo Musetti",nat:"🇮🇹 Italy",pts:3715},{rank:10,name:"Daniil Medvedev",nat:"🇷🇺 Russia",pts:3560}];
+const wta=[{rank:1,name:"Aryna Sabalenka",nat:"🇧🇾 Belarus",pts:10895},{rank:2,name:"Elena Rybakina",nat:"🇰🇿 Kazakhstan",pts:8500},{rank:3,name:"Coco Gauff",nat:"🇺🇸 USA",pts:7279},{rank:4,name:"Iga Swiatek",nat:"🇵🇱 Poland",pts:7273},{rank:5,name:"Jessica Pegula",nat:"🇺🇸 USA",pts:6136},{rank:6,name:"Amanda Anisimova",nat:"🇺🇸 USA",pts:5995},{rank:7,name:"Elina Svitolina",nat:"🇺🇦 Ukraine",pts:3910},{rank:8,name:"Mirra Andreeva",nat:"🇷🇺 Russia",pts:3746},{rank:9,name:"Jasmine Paolini",nat:"🇮🇹 Italy",pts:3722},{rank:10,name:"Victoria Mboko",nat:"🇨🇦 Canada",pts:3531}];
+const legends=[{name:"Roger Federer",nat:"🇨🇭 Switzerland",era:"1998–2022",slams:20,init:"RF",c1:"rgba(56,138,221,0.2)",c2:"#378ADD",fact:"20 Grand Slams · 8 Wimbledon titles · 310 weeks at No.1 · Widely considered the most elegant player ever."},{name:"Rafael Nadal",nat:"🇪🇸 Spain",era:"2001–2024",slams:22,init:"RN",c1:"rgba(216,90,48,0.2)",c2:"#D85A30",fact:"22 Grand Slams · 14 Roland Garros titles · King of Clay · Career win-loss on clay: 963–68."},{name:"Novak Djokovic",nat:"🇷🇸 Serbia",era:"2003–present",slams:24,init:"ND",c1:"rgba(46,204,143,0.2)",c2:"#2ecc8f",fact:"24 Grand Slams · Most Slams in history · 428 weeks at No.1 · Won all four Grand Slams multiple times."},{name:"Serena Williams",nat:"🇺🇸 USA",era:"1995–2022",slams:23,init:"SW",c1:"rgba(212,83,126,0.2)",c2:"#D4537E",fact:"23 Grand Slams · 4 Olympic gold medals · Dominated women's tennis for two decades."},{name:"Steffi Graf",nat:"🇩🇪 Germany",era:"1982–1999",slams:22,init:"SG",c1:"rgba(127,119,221,0.2)",c2:"#7F77DD",fact:"22 Grand Slams · Only player to win the Golden Slam (all 4 Slams + Olympic gold in same year, 1988)."},{name:"Pete Sampras",nat:"🇺🇸 USA",era:"1988–2002",slams:14,init:"PS",c1:"rgba(232,201,106,0.2)",c2:"#e8c96a",fact:"14 Grand Slams · 7 Wimbledon titles · World No.1 for 6 consecutive year-end rankings."},{name:"Martina Navratilova",nat:"🇺🇸 / Czech",era:"1973–2006",slams:18,init:"MN",c1:"rgba(99,211,34,0.15)",c2:"#63c322",fact:"18 Grand Slams · 9 Wimbledon titles · 167 singles titles — the most in Open Era history."},{name:"Andre Agassi",nat:"🇺🇸 USA",era:"1986–2006",slams:8,init:"AA",c1:"rgba(46,204,143,0.15)",c2:"#2ecc8f",fact:"8 Grand Slams · Career Golden Slam · Olympic gold 1996 · Greatest returner of serve in history."}];
+const slams=[{name:"Australian Open",loc:"Melbourne, Australia",surface:"Hard",founded:1905,accent:"#378ADD",weeks:"January",sets:"Best of 5 (men), 3 (women)",record:"Djokovic – 10 titles (men) / Williams – 7 (women)"},{name:"Roland Garros",loc:"Paris, France",surface:"Clay",founded:1891,accent:"#D85A30",weeks:"May–June",sets:"Best of 5 (men), 3 (women)",record:"Nadal – 14 titles (men) / Evert – 7 (women)"},{name:"Wimbledon",loc:"London, England",surface:"Grass",founded:1877,accent:"#639922",weeks:"June–July",sets:"Best of 5 (men), 3 (women)",record:"Federer – 8 titles (men) / Navratilova – 9 (women)"},{name:"US Open",loc:"New York, USA",surface:"Hard",founded:1881,accent:"#EF9F27",weeks:"August–September",sets:"Best of 5 (men), 3 (women)",record:"Sampras – 5 titles (men) / S.Williams – 6 (women)"}];
+const surfaceColors={Hard:"rgba(56,138,221,0.15)",Clay:"rgba(216,90,48,0.15)",Grass:"rgba(99,195,89,0.15)"};
+const surfaceText={Hard:"#378ADD",Clay:"#D85A30",Grass:"#5cb85c"};
+const rules=[{n:"01",title:"Scoring system",desc:"Points go 0 (Love), 15, 30, 40. Win at deuce (40–40) by getting two points ahead. Win 6 games to take a set. Win best of 3 or 5 sets to win the match."},{n:"02",title:"The serve",desc:"The server gets two attempts per point. A ball clipping the net but landing in is a 'let' — replayed. A missed first serve is a fault. Two faults = double fault, opponent wins the point."},{n:"03",title:"In and out",desc:"A ball is 'in' if any part touches the line. Shots landing outside court lines or hitting the net lose the point. On serve, the ball must land in the diagonal service box."},{n:"04",title:"Tiebreak",desc:"At 6–6 in most sets, a tiebreak is played — first to 7 points with a 2-point lead wins. Grand Slams use tiebreaks in the final set at 6–6 (or 12–12 at Wimbledon and Australian Open)."},{n:"05",title:"Let",desc:"A 'let' is called when the serve clips the net cord. It's replayed — nobody loses a point. Players can also call lets if an unusual distraction occurs during a point."},{n:"06",title:"Foot fault",desc:"The server must not touch the baseline or step inside the court before hitting the ball. A foot fault counts the same as a missed serve — a fault."},{n:"07",title:"Hindrance",desc:"If a player is hindered by their opponent, the point may be replayed or awarded. Deliberate hindrance results in an immediate penalty point."},{n:"08",title:"Ball change",desc:"New balls are introduced after the first 7 games and every 9 games after that. Fresh balls bounce higher and travel faster through the air."},{n:"09",title:"Coaching",desc:"On-court coaching during points is not allowed on most professional tours. Some events permit coaching during changeovers. Violations result in a warning, then penalty points."}];
+const statsHero=[{num:"140+",label:"Countries play tennis"},{num:"87M",label:"Players worldwide"},{num:"263",label:"Fastest serve (km/h)"},{num:"1877",label:"First Wimbledon"},{num:"4",label:"Grand Slams per year"},{num:"70+",label:"ATP Tour events"}];
+const statsFacts=[{n:"01",title:"Court surfaces",desc:"Tennis is played on 4 main surfaces: Hard (most common), Clay (slowest, highest bounce — French Open), Grass (fastest, lowest bounce — Wimbledon), and Carpet (now rare). Each rewards a different style."},{n:"02",title:"Ball specifications",desc:"A tennis ball must weigh 56.7–58.5g and measure 6.54–6.86cm in diameter. Pressurised with gas, balls are replaced every 7–9 games as they lose pressure and fluff up."},{n:"03",title:"Racket technology",desc:"Modern rackets are made from graphite/carbon fibre composites. String tension ranges from 45–70 lbs. The racket head size and string pattern affect the balance of power vs control."},{n:"04",title:"Hawk-Eye technology",desc:"Introduced in 2006, Hawk-Eye uses 10 cameras tracking the ball to within 3.6mm accuracy. Players get 3 incorrect challenges per set to review line calls."},{n:"05",title:"Prize money",desc:"Wimbledon 2024 paid £2.7M to each singles champion. Total prize money across the four Grand Slams now exceeds $250M annually."},{n:"06",title:"Speed of play",desc:"A professional point lasts on average just 3.7 seconds on fast surfaces. A flat groundstroke reaches 100 mph, giving the opponent roughly 0.5 seconds to react from the baseline."}];
+
+function renderBeginner(){
+  document.getElementById('steps-grid').innerHTML=steps.map(s=>`<div class="glass step-card"><div class="step-head"><div class="step-number">${s.n}</div><div class="step-title">${s.title}</div></div><div class="step-desc">${s.desc}</div></div>`).join('');
+  document.getElementById('scoring-grid').innerHTML=scoring.map(s=>`<div class="glass score-card"><div class="score-big">${s.score}</div><div class="score-means">${s.means}</div><div class="score-note">${s.note}</div></div>`).join('');
+  document.getElementById('glossary-grid').innerHTML=glossary.map(g=>`<div class="glass glossary-card"><div class="glossary-icon">${g.icon}</div><div><div class="glossary-term">${g.term}</div><div class="glossary-def">${g.def}</div></div></div>`).join('');
+}
+
+function renderShots(){
+  document.getElementById('shots-grid').innerHTML=shots.map((s,i)=>`<div class="glass shot-card" onclick="openShotModal(${i})"><div class="shot-top"><div class="shot-icon">${s.icon}</div><div><div class="shot-name">${s.name}</div><div class="shot-badge">${s.badge}</div></div></div><div class="shot-difficulty"><span>Difficulty</span><div class="diff-dots">${[1,2,3,4,5].map(n=>`<div class="diff-dot${n<=s.diff?' on':''}"></div>`).join('')}</div></div><p class="shot-hint">Tap to learn more →</p></div>`).join('');
+}
+
+function openShotModal(i){
+  const s=shots[i];
+  document.getElementById('modal-icon').textContent=s.icon;
+  document.getElementById('modal-name').textContent=s.name;
+  document.getElementById('modal-badge').textContent=s.badge;
+  document.getElementById('modal-diff').innerHTML=[1,2,3,4,5].map(n=>`<div class="diff-dot${n<=s.diff?' on':''}"></div>`).join('');
+  document.getElementById('modal-desc').textContent=s.desc;
+  document.getElementById('modal-beginner').textContent=s.beginner;
+  document.getElementById('modal-tip').textContent='💡 '+s.tip;
+  document.getElementById('shot-modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeShotModal(e){
+  if(e&&e.target!==document.getElementById('shot-modal-overlay'))return;
+  document.getElementById('shot-modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function renderRankings(data){
+  const max=data[0].pts;
+  document.getElementById('rank-table').innerHTML=data.map(p=>{
+    const rc=p.rank===1?'r1':p.rank===2?'r2':p.rank===3?'r3':'rn';
+    return `<div class="rank-row"><div><span class="rank-num ${rc}">${p.rank}</span></div><div class="player-info"><div class="pname">${p.name}</div><div class="pnat">${p.nat}</div></div><div class="pts-bar-wrap"><div class="pts-bar-bg"><div class="pts-bar-fill" style="width:${Math.round(p.pts/max*100)}%"></div></div></div><div class="pts-val">${p.pts.toLocaleString()} pts</div></div>`;
+  }).join('');
+}
+
+function showRank(type,btn){
+  document.querySelectorAll('.lb-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRankings(type==='atp'?atp:wta);
+}
+
+function renderLegends(){
+  document.getElementById('legends-grid').innerHTML=legends.map(l=>`<div class="glass legend-card"><div class="legend-init" style="background:${l.c1};color:${l.c2}">${l.init}</div><div class="legend-name">${l.name}</div><div class="legend-nat">${l.nat} &bull; ${l.era}</div><div class="legend-slams">${l.slams}</div><div class="legend-slam-label">Grand Slams</div><div class="legend-fact">${l.fact}</div></div>`).join('');
+}
+
+function renderSlams(){
+  document.getElementById('slams-grid').innerHTML=slams.map(s=>`<div class="glass slam-card"><div class="slam-accent" style="background:linear-gradient(90deg,${s.accent},transparent)"></div><div class="slam-year">Est. ${s.founded}</div><div class="slam-name" style="color:${s.accent}">${s.name}</div><div class="slam-loc">📍 ${s.loc}</div><div class="slam-stat"><span class="slam-stat-label">When</span><span class="slam-stat-val">${s.weeks}</span></div><div class="slam-stat"><span class="slam-stat-label">Format</span><span class="slam-stat-val">${s.sets}</span></div><div class="slam-stat"><span class="slam-stat-label">Records</span><span class="slam-stat-val" style="font-size:11px">${s.record}</span></div><span class="slam-surface-pill" style="background:${surfaceColors[s.surface]};color:${surfaceText[s.surface]}">${s.surface}</span></div>`).join('');
+}
+
+function renderRules(){
+  document.getElementById('rules-grid').innerHTML=rules.map(r=>`<div class="glass rule-card"><div class="rule-num">${r.n}</div><div class="rule-title">${r.title}</div><div class="rule-desc">${r.desc}</div></div>`).join('');
+}
+
+function renderStats(){
+  document.getElementById('stats-hero').innerHTML=statsHero.map(s=>`<div class="glass stat-card"><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`).join('');
+  document.getElementById('stats-facts').innerHTML=statsFacts.map(r=>`<div class="glass rule-card"><div class="rule-num">${r.n}</div><div class="rule-title">${r.title}</div><div class="rule-desc">${r.desc}</div></div>`).join('');
+}
+
+function show(id,btn){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+renderBeginner();
+renderShots();
+renderRankings(atp);
+renderLegends();
+renderSlams();
+renderRules();
+renderStats();
+</script>
+</body>
+</html>
